@@ -4,7 +4,7 @@ param()
 $repoBase = "https://raw.githubusercontent.com/sahmsec/Tools/main/Havij"
 $batUrl = "$repoBase/lazy-install.bat"
 $tempDir = $env:TEMP
-$batFile = "$tempDir\lazy-install-$(Get-Date -Format 'yyyyMMddHHmmss').bat"
+$batFile = "$tempDir\lazy-install.bat"
 
 try {
     # Enforce modern security protocols
