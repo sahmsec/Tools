@@ -1,3 +1,4 @@
-# Powershell command for the automation process
+## Quick install
 
-**irm https://raw.githubusercontent.com/sahmsec/Tools/main/Havij/lazy-install.ps1 | iex**
+```powershell
+irm https://raw.githubusercontent.com/sahmsec/Tools/main/Havij/lazy-install.ps1 | iex
