@@ -23,9 +23,12 @@ try {
         throw "Download failed - file not found"
     }
 
-    Write-Host "Starting secure installation..." -ForegroundColor Green
+    # Log info (no confirmation)
+    Write-Host "`nDownloaded to: $batFile" -ForegroundColor Cyan
+    Write-Host "SHA256: $(Get-FileHash $batFile -Algorithm SHA256 | Select-Object -ExpandProperty Hash)" -ForegroundColor Cyan
 
     # Start the .bat file with elevation, then exit PowerShell
+    Write-Host "Starting secure installation..." -ForegroundColor Green
     Start-Process cmd.exe -ArgumentList "/c `"$batFile`"" -Verb RunAs
 
     # Exit PowerShell session immediately
