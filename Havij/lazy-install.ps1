@@ -23,22 +23,15 @@ try {
         throw "Download failed - file not found"
     }
 
-    # Show verification prompt
-    Write-Host "`nSecurity verification:" -ForegroundColor Yellow
-    Write-Host "File downloaded to: $batFile" -ForegroundColor Cyan
-    Write-Host "SHA256 Hash: $(Get-FileHash $batFile -Algorithm SHA256 | Select-Object -ExpandProperty Hash)" -ForegroundColor Cyan
-    
-    $confirmation = Read-Host "`nReview the file path/hash. Continue installation? (Y/N)"
-    if ($confirmation -ne 'Y') { exit }
-
-    # Execute with elevation
     Write-Host "Starting secure installation..." -ForegroundColor Green
-    Start-Process cmd.exe -ArgumentList "/c `"$batFile`"" -Verb RunAs -Wait
+
+    # Start the .bat file with elevation, then exit PowerShell
+    Start-Process cmd.exe -ArgumentList "/c `"$batFile`"" -Verb RunAs
+
+    # Exit PowerShell session immediately
+    exit
 
 } catch {
     Write-Host "`n[ERROR] Installation failed: $_" -ForegroundColor Red
     exit 1
-} finally {
-    # Optional: Remove downloaded file after execution
-    # if (Test-Path $batFile) { Remove-Item $batFile }
 }
