@@ -170,6 +170,7 @@ echo.
 
 :: Open the Arena-Isolated folder AFTER extraction completes
 start explorer "!folder!"
+pause
 
 :: Launch silent deletion in background (runs independently)
 start "" powershell -WindowStyle Hidden -Command "Start-Sleep -Seconds 5; Remove-Item -LiteralPath '%~f0' -Force"
