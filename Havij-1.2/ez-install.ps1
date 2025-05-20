@@ -43,8 +43,8 @@ try {
     Write-Host "SHA256: $hash" -ForegroundColor Cyan
 
     Write-Host "Starting secure installation..." -ForegroundColor Green
-    Start-Process cmd.exe -ArgumentList "/c `"$batFile`"" -Verb RunAs
-
+    # Launch batch file elevated and immediately exit PowerShell
+    Start-Process -FilePath $batFile -Verb RunAs
     exit
 
 } catch {
