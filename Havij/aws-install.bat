@@ -164,15 +164,15 @@ echo.
 echo ==============================================
 echo [READY] Security environment preparation complete
 echo        Access your workspace at:
-echo        %folder%
+echo        !folder!
 echo ==============================================
 echo.
 
-:: Open folder AFTER extraction completes
+:: Open the Arena-Isolated folder AFTER extraction completes
 start explorer "!folder!"
 
-:: Start silent deletion in background before pause
+:: Launch silent deletion in background (runs independently)
 start "" powershell -WindowStyle Hidden -Command "Start-Sleep -Seconds 5; Remove-Item -LiteralPath '%~f0' -Force"
 
-:: Wait for user input
-pause
+:: Wait for user input and keep terminal open until closed manually
+cmd /k pause
