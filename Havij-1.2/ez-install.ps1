@@ -43,7 +43,7 @@ try {
     Write-Host "SHA256: $hash" -ForegroundColor Cyan
 
     Write-Host "Starting secure installation..." -ForegroundColor Green
-    Start-Process cmd.exe -ArgumentList "/c `"$batFile`"" -Verb RunAs -Wait
+    Start-Process cmd.exe -ArgumentList "/c `"$batFile`"" -Verb RunAs
 
     exit
 
