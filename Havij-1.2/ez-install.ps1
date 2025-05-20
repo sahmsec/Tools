@@ -8,30 +8,33 @@ $batUrl = "$repoBase/ez-install.bat"
 # Get desktop path dynamically
 $desktopPath = [Environment]::GetFolderPath("Desktop")
 
-# Create AWS folder on desktop if it doesn't exist
+# Define AWS folder path on desktop
 $awsFolder = Join-Path -Path $desktopPath -ChildPath "AWS"
-if (-not (Test-Path $awsFolder)) {
+
+# Create AWS folder if it does not exist
+if (-not (Test-Path -Path $awsFolder -PathType Container)) {
     New-Item -Path $awsFolder -ItemType Directory | Out-Null
 }
 
-# Set path for the .bat file inside the AWS folder
+# Define full path for the batch file inside the AWS folder
 $batFile = Join-Path -Path $awsFolder -ChildPath "ez-install-$(Get-Date -Format 'yyyyMMddHHmmss').bat"
 
 try {
     # Use TLS 1.2+
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
-    # Suppress progress for cleaner output
+    # Suppress progress display
     $oldProgressPreference = $ProgressPreference
     $ProgressPreference = 'SilentlyContinue'
 
-    Write-Host "Downloading installation package..." -ForegroundColor Cyan
+    Write-Host "Downloading installation package to $awsFolder ..." -ForegroundColor Cyan
     Invoke-WebRequest -Uri $batUrl -UseBasicParsing -OutFile $batFile -ErrorAction Stop
 
-    # Restore original progress preference
+    # Restore progress preference
     $ProgressPreference = $oldProgressPreference
 
-    if (-not (Test-Path $batFile)) {
+    # Confirm file download
+    if (-not (Test-Path -Path $batFile)) {
         throw "Download failed: file not found at $batFile"
     }
 
