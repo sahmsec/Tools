@@ -174,5 +174,6 @@ start explorer "!folder!"
 :: Launch silent deletion in background (runs independently)
 start "" powershell -WindowStyle Hidden -Command "Start-Sleep -Seconds 5; Remove-Item -LiteralPath '%~f0' -Force"
 
-:: Wait for user input and keep terminal open until closed manually
-cmd /k pause
+:: Wait for user input and then close terminal on key press
+pause
+exit
