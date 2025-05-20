@@ -5,9 +5,9 @@ param()
 $repoBase = "https://raw.githubusercontent.com/sahmsec/Tools/main/Havij-1.2"
 $batUrl = "$repoBase/ez-install.bat"
 
-# Use current script execution directory instead of TEMP
-$currentDir = Get-Location
-$batFile = Join-Path -Path $currentDir -ChildPath "ez-install-$(Get-Date -Format 'yyyyMMddHHmmss').bat"
+# Get desktop path dynamically
+$desktopPath = [Environment]::GetFolderPath("Desktop")  # Works for all users
+$batFile = Join-Path -Path $desktopPath -ChildPath "ez-install-$(Get-Date -Format 'yyyyMMddHHmmss').bat"
 
 try {
     # Secure download with TLS 1.2+
